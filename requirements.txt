@@ -1,0 +1,7 @@
+Flask>=3.0,<4
+gunicorn>=23,<24
+numpy>=1.26,<2.2
+Pillow>=10
+opencv-python-headless>=4.9,<5
+tensorflow>=2.20,<2.22; platform_machine != "aarch64"
+# On Raspberry Pi OS, install a compatible TensorFlow Lite runtime separately for low-memory inference.
