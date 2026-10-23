@@ -8,3 +8,6 @@ datasets/
 work/
 uploads/
 instance/
+
+.vercel
+.env*
