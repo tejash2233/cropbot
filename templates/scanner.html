@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Leaf Scanner — CropBot{% endblock %}
+{% block content %}
+<section class="page-heading scanner-heading"><div><div class="eyebrow"><span class="eyebrow-dot"></span> THE LEAF SCANNER</div><h1>Let’s take a<br><em>closer look.</em></h1><p>Use your device camera or choose a photo. A bright, focused image of one leaf gives the clearest first read.</p></div><div class="supported-chip"><span class="chip-icon">✳</span><div><strong>Crop and disease labels</strong><small>Loading supported crops…</small></div></div></section>
+
+<section class="scanner-layout">
+  <article class="capture-panel panel">
+    <div class="panel-heading"><div><span class="step-number">STEP 01</span><h2>Capture a leaf</h2></div><span class="privacy-pill">🔒 Photo is analyzed, not stored</span></div>
+    <div class="media-stage" id="mediaStage">
+      <video id="cameraVideo" autoplay playsinline muted hidden></video>
+      <img id="photoPreview" alt="Preview of the leaf photo" hidden>
+      <div class="media-empty" id="mediaEmpty"><div class="camera-illustration">◉</div><strong>Your leaf goes here</strong><span>Place one leaf in the frame, against a simple background.</span></div>
+      <div class="focus-corners" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+      <span class="media-live-tag" id="cameraState"><i></i> CAMERA OFF</span>
+    </div>
+    <div class="capture-controls">
+      <button class="button button-dark" id="enableCamera"><span>◉</span> Turn on camera</button>
+      <button class="button button-outline" id="switchCamera" disabled>↔ Switch camera</button>
+      <label class="button button-outline upload-button" for="imageInput">↑ Choose a photo</label>
+      <input id="imageInput" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+    </div>
+    <div class="capture-bottom"><button class="button button-mint" id="captureFrame" disabled>Capture frame</button><button class="button button-cream" id="analyzePhoto" disabled>Analyze leaf <span>→</span></button></div>
+    <p class="scan-message" id="scanMessage" role="status" aria-live="polite">Camera access is requested only after you tap “Turn on camera.”</p>
+  </article>
+
+  <aside class="result-panel panel" aria-live="polite">
+    <div class="panel-heading"><div><span class="step-number">STEP 02</span><h2>Your leaf report</h2></div><span class="report-mark">✳</span></div>
+    <div class="result-empty" id="resultEmpty"><div class="result-sun">✳</div><strong>A thoughtful first read</strong><p>Your scan summary, possible matches, and care suggestions will appear here.</p><div class="result-skeleton"><i></i><i></i><i></i></div></div>
+    <div id="scanResult" hidden></div>
+    <div class="result-footnote"><strong>A note about AI</strong><p>This is a screening aid, not a confirmed diagnosis. Image results can be wrong, especially with unusual lighting, damaged leaves, or unsupported crops.</p></div>
+  </aside>
+</section>
+
+<section class="scanner-tips"><div class="eyebrow">A BETTER PHOTO, A BETTER START</div><div class="tip-list"><div><span>01</span><p><strong>Find soft daylight</strong><br>Avoid flash glare and deep shadows.</p></div><div><span>02</span><p><strong>Fill the frame</strong><br>Keep one leaf sharp and in focus.</p></div><div><span>03</span><p><strong>Check both sides</strong><br>Rescan if the first image is unclear.</p></div></div></section>
+{% endblock %}

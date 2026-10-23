@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f6ef">
+  <meta name="description" content="A clear, camera-powered plant health screening tool for curious growers.">
+  <title>{% block title %}CropBot — A clearer picture of plant health{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body data-page="{{ page }}">
+  <header class="site-header">
+    <a class="brand" href="/" aria-label="CropBot home"><span class="brand-mark">c</span><span>crop<span class="brand-light">bot</span></span></a>
+    <button class="menu-toggle" id="menuToggle" aria-label="Open menu" aria-expanded="false">☰</button>
+    <nav class="main-nav" id="mainNav" aria-label="Main navigation">
+      <a class="{% if page == 'home' %}active{% endif %}" href="/">Home</a>
+      <a class="{% if page == 'scanner' %}active{% endif %}" href="/scanner">Leaf scanner</a>
+      <a class="{% if page == 'guide' %}active{% endif %}" href="/guide">Plant guide</a>
+      <a class="{% if page == 'journal' %}active{% endif %}" href="/journal">My journal <span class="nav-count" id="navCount">0</span></a>
+    </nav>
+    <a class="header-cta" href="/scanner">Scan a leaf <span>↗</span></a>
+  </header>
+  <main>{% block content %}{% endblock %}</main>
+  <footer class="site-footer">
+    <a class="brand" href="/"><span class="brand-mark">c</span><span>crop<span class="brand-light">bot</span></span></a>
+    <p>Small observations. Healthier growing.</p>
+    <span class="footer-note">AI screening · 15 supported leaf conditions</span>
+  </footer>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block title %}Plant Guide — CropBot{% endblock %}
+{% block content %}
+<section class="page-heading guide-heading"><div><div class="eyebrow"><span class="eyebrow-dot"></span> THE CROPBOT FIELD GUIDE</div><h1>Know what to<br><em>look for.</em></h1><p>Browse the plant patterns covered by this model. Use the guide as a companion to careful observation, not a final diagnosis.</p></div><div class="guide-stamp"><span>FIELD<br>GUIDE</span><strong>01</strong><small id="guideStampCount">MODEL LABELS</small></div></section>
+<section class="guide-content">
+  <div class="guide-toolbar"><label class="search-field"><span>⌕</span><input id="guideSearch" type="search" placeholder="Search a crop or pattern" aria-label="Search plant conditions"></label><div class="filter-pills" id="cropFilters" role="group" aria-label="Filter by crop"><button class="filter-pill active" data-crop="all">All crops</button></div></div>
+  <div class="guide-grid" id="guideGrid"><div class="guide-loading">Loading the field guide…</div></div>
+  <div class="guide-disclaimer"><span>✳</span><p><strong>Use this as a starting point.</strong> Leaf symptoms can look similar across diseases and growing conditions. Confirm a diagnosis locally before taking major action or applying crop treatments.</p></div>
+</section>
+{% endblock %}

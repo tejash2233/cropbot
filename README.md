@@ -1,89 +1,78 @@
 # CropBot
 
-Flask dashboard for leaf disease screening and Raspberry Pi field monitoring. The site can use a phone/laptop camera or upload, and can request a capture from a camera attached to the Pi. A model must be trained first; the app deliberately reports when a real model is missing rather than presenting invented predictions.
+CropBot is a software-only plant health screening website. It has a welcome page, a camera and photo-upload scanner, an interactive plant guide, and a private scan journal stored in the visitor's browser.
 
-## Project files
+## Pages and features
 
-```text
-app.py                 Flask routes, model inference, sensor and pump APIs
-train_model.py         Train MobileNetV2 from a class-folder dataset
-hardware/device.py     GPIO17 soil, GPIO27 rain, GPIO22 active-low relay
-templates/index.html   Interactive dashboard
-static/                Responsive styles and browser camera controls
-models/                Put plant_disease_model.keras and class_indices.json here
-```
+- `/` — welcome page, how it works, and shortcuts to the main tools.
+- `/scanner` — use the current device's front or rear camera, or upload a leaf image; see the top three model matches and care suggestions.
+- `/guide` — search and filter the model's supported classes by crop, and expand practical care notes.
+- `/journal` — review scans saved in this browser, filter them, and export a CSV.
 
-## Dataset and training
+The browser asks for camera permission only after the visitor starts the camera. Uploaded images are processed in memory and are not saved by the Flask app. Journal entries are stored in local browser storage, not in a server database.
 
-Download a PlantVillage dataset from Kaggle and arrange it as `datasets/PlantVillage/<class name>/image.jpg`. Train on a desktop/laptop with TensorFlow installed; training on a Pi 3B+ is slow and memory constrained. From the project directory:
+## Model coverage and limitations
+
+The included model's crop list and class count are shown by the live API, scanner, and searchable guide. It is trained on PlantDoc, a small, real-world-style dataset with about 2,600 images across 13 plant types. In the bundled training run, the held-out PlantDoc test split scored 72.5% for crop identification (plant name) and 49.6% for the exact crop-and-disease label across 236 images. These scores are development metrics on a small dataset, not a guarantee on local farm photos. CropBot provides screening suggestions, not a confirmed diagnosis or pesticide recommendation. Confirm significant or spreading symptoms with a local agricultural specialist.
+
+The model and matching class map are in `models/`. Keep both files from the same training run.
+
+## Run locally
+
+Use Python 3.11 and install the dependencies:
 
 ```bash
-py -3.13 -m venv .venv
-# Windows PowerShell:
-.venv\Scripts\Activate.ps1
-# Linux/macOS use: python3.13 -m venv .venv && source .venv/bin/activate
+python -m venv .venv
+# Windows PowerShell: .venv\Scripts\Activate.ps1
+# Linux/macOS: source .venv/bin/activate
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
-python train_model.py
-```
-
-Copy the generated `models/plant_disease_model.keras` and `models/class_indices.json` to the Pi. The classifier is a screening aid; its suggestions are conservative and are not a substitute for local agronomic diagnosis.
-
-Use Python 3.13 or 3.12 for TensorFlow. Python 3.14 is not currently a supported Windows TensorFlow target. If the project has no trained model files, disease classification cannot return real results; the dashboard status and scan response will state what file is missing.
-
-## Run on a computer
-
-```bash
-pip install -r requirements.txt
 python app.py
 ```
 
-Visit `http://127.0.0.1:5000`. Camera access in a browser requires a secure context (localhost or HTTPS). On a phone connected to the Pi, use the Pi's local IP; browser camera access may require HTTPS, so the Upload photo option is the reliable fallback over plain local HTTP.
+Open `http://127.0.0.1:5000`. Browser camera access works on localhost and HTTPS sites; otherwise choose an image upload.
 
-## Host the website on Google Cloud Run
+## Deploy on Render
 
-Cloud Run can host the Flask website and API. It does not have access to the Raspberry Pi's GPIO, attached Pi camera, or sensors. In Cloud Run the hardware endpoints run in simulation mode unless you build a separate, secured connection from the cloud app to the Pi.
+The repository includes `render.yaml` for a Python web service. In the Render Dashboard:
 
-1. Install and sign in to the Google Cloud CLI, create/select a Google Cloud project, and enable billing for that project.
-2. If you want disease scans, train the model and copy `models/plant_disease_model.keras` and `models/class_indices.json` into this folder first. Without both files the site opens, but scans report that no trained model is available.
-3. In PowerShell, deploy this folder:
+1. Choose **New → Blueprint** and connect the GitHub repository `tejash2233/cropbot`.
+2. Review the service settings and the selected compute plan before applying the Blueprint.
+3. Apply it. Render installs `requirements.txt`, starts Gunicorn, and deploys on pushes to the connected Git branch.
+4. Open the generated `https://<service>.onrender.com` address. HTTPS allows the browser camera prompt.
 
-   ```powershell
-   cd C:\path\to\outputs
-   gcloud init
-   gcloud run deploy cropbot --source .
-   ```
+The Blueprint selects `1c-2g` (1 CPU, 2 GB RAM) because TensorFlow and the loaded model need more memory than Render's free web plan provides. Render's listed price for that plan is currently about $40/month; confirm the current amount in Render before applying. Render's Python web service guidance is at https://render.com/docs/deploy-flask and compute plan details at https://render.com/docs/compute-plans.
 
-   Follow the prompts to select the project and a nearby region. Choose public access only if you want anyone with the URL to open it. Cloud Run prints an HTTPS URL when deployment completes.
+## Train or replace the classifier
 
-This project has no login or API authentication. If made public, anyone can send requests to its APIs (including model scans), which may use your Cloud Run resources. Do not connect public pump/motor endpoints directly to your Pi. Add authentication and a private, secured device connection before enabling remote hardware control. Camera permission in a browser is granted by the user on their device; Pi camera index capture is not available inside Cloud Run.
+For field-photo training, download the ZIP from the [PlantDoc dataset repository](https://github.com/pratikkayal/PlantDoc-Dataset) and save it as `work/PlantDoc-Dataset.zip`. The included `prepare_plantdoc.py` safely extracts its train/test folders and renames image files that Windows cannot store:
 
-## Raspberry Pi 3B+
+```bash
+python prepare_plantdoc.py
+```
 
-Connect the Pi to the same Wi-Fi router as your phone/laptop, copy the project and model, create a virtual environment, install compatible dependencies for your Raspberry Pi OS, and run `python app.py`. Then find its address with `hostname -I` and visit `http://<pi-ip>:5000`. To install the system service, run `sudo python3 setup_pi.py` from this directory.
+The dataset repository states CC BY 4.0; keep attribution when redistributing the images. You can also use PlantVillage from Kaggle by arranging it as `datasets/PlantVillage/<class-name>/<image>`.
 
-TensorFlow wheels vary by Raspberry Pi OS, Python version and CPU architecture. The requirements file intentionally avoids forcing a heavyweight TensorFlow build on a Pi. Install a compatible TensorFlow/TFLite runtime for your OS, or run inference on a separate computer and use the Pi for camera and GPIO. The current app expects the Keras `.keras` model.
+Train on a computer with Python 3.11 and TensorFlow. Set the data directory before running the trainer:
 
-## Supplied wiring supported by this code
+```bash
+# Windows PowerShell
+$env:CROPBOT_DATASET_DIR = "datasets/PlantDoc"
+python train_model.py
 
-| Function | BCM GPIO | Physical pin |
-|---|---:|---:|
-| Soil digital output | 17 | 11 |
-| Rain digital output | 27 | 13 |
-| Active-low relay input | 22 | 15 |
+# Linux/macOS
+CROPBOT_DATASET_DIR=datasets/PlantDoc python train_model.py
+```
 
-The supplied motor wiring was incomplete, so motor movement is intentionally not enabled. L293D requires defined direction and enable (ENA/ENB) connections; do not energize motor outputs until those pins and a suitable motor supply are specified. GPIO pins are 3.3V logic and must not receive 5V sensor outputs. Use a separate, correctly rated motor/pump supply and common ground where required by the driver/relay design; never power a pump from Pi GPIO. Confirm relay isolation, pump current, diode polarity, and sensor output voltage with your module documentation before powering it.
+The trainer detects PlantDoc's separate train and test folders, maps each label to a plant and condition, fine-tunes MobileNetV2, and saves a `.keras` model plus matching class map in `models/`. Commit both files together to deploy an updated model. The trainer prints held-out validation accuracy; do not interpret that score as proven field accuracy.
 
-GPIO sensor interpretation can vary by module; `hardware/device.py` assumes the digital output is active-low (LOW means dry / rain detected). Adjust to match the sensor's comparator setting. Pump API automatically limits each activation to 10 seconds; it does not automatically water based on sensors.
-
-## Camera selection
-
-“This device” uses the browser camera with the environment-facing camera requested on phones; choose the camera in the browser/device settings, or use Upload photo. “Raspberry Pi” asks OpenCV for camera index 0 or 1, generally USB cameras. CSI camera support depends on OS and camera stack; enable it and test it separately. The phone's browser camera is not passed through the Pi server.
+Dataset reference: Singh et al., “PlantDoc: A Dataset for Visual Plant Disease Detection,” CoDS-COMAD 2020, [paper](https://arxiv.org/abs/1911.10317), [dataset and license](https://github.com/pratikkayal/PlantDoc-Dataset).
 
 ## API
 
-- `POST /api/scan` multipart image field `image`
-- `POST /api/camera-scan` JSON `{"camera_id":0}` or `1`
-- `GET /api/status`, `GET /api/sensors`, `GET /api/history`
-- `POST /api/pump` JSON `{"action":"on","seconds":3}` or `{"action":"off"}`
-- `POST /api/motor` accepts direction, but the hardware adapter reports motor control unavailable until wiring is defined.
+- `GET /api/status` — model readiness and supported crop/class counts.
+- `GET /api/diseases` — supported model classes and their care notes.
+- `POST /api/scan` — multipart upload with the image field named `image`.
+- `GET /healthz` — Render health check.
+
+This app has no user accounts or server-side scan database. The scan journal is browser-local and can be exported or cleared from the Journal page.

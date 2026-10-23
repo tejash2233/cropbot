@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: cropbot
+    runtime: python
+    plan: 1c-2g
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 120 app:app
+    healthCheckPath: /healthz
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.11
+      - key: WEB_CONCURRENCY
+        value: "1"
+      - key: TF_CPP_MIN_LOG_LEVEL
+        value: "2"

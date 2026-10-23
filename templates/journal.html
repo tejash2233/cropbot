@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}My Scan Journal — CropBot{% endblock %}
+{% block content %}
+<section class="page-heading journal-heading"><div><div class="eyebrow"><span class="eyebrow-dot"></span> YOUR PRIVATE GROWING LOG</div><h1>Keep an eye on<br><em>what changes.</em></h1><p>Your scan notes are saved in this browser only. They help you compare observations over time.</p></div><div class="journal-actions"><button class="button button-outline" id="exportJournal">↓ Export notes</button><button class="button button-delete" id="clearJournal">Clear journal</button></div></section>
+<section class="journal-content">
+  <div class="journal-stats"><article><span>OBSERVATIONS</span><strong id="journalTotal">0</strong><small>Saved on this device</small></article><article><span>PLANTS SCANNED</span><strong id="journalPlants">0</strong><small>Different plant types</small></article><article><span>LATEST CHECK</span><strong id="journalLatest">—</strong><small id="journalLatestTime">Scan a leaf to begin</small></article><div class="journal-plant-art"><div class="tiny-stem"></div><div class="tiny-leaf one"></div><div class="tiny-leaf two"></div><span>A season of<br>small changes</span></div></div>
+  <div class="journal-list-head"><div><div class="eyebrow">YOUR FIELD NOTES</div><h2>Recent scans</h2></div><label class="journal-filter">Show <select id="journalFilter"><option value="all">All scans</option><option value="attention">Needs attention</option><option value="healthy">Healthy</option></select></label></div>
+  <div class="journal-list" id="journalList"></div>
+  <div class="journal-empty" id="journalEmpty"><div>☷</div><h3>Your journal starts with one scan.</h3><p>Save a leaf scan and its summary will be waiting here next time you visit on this device.</p><a class="button button-dark" href="/scanner">Scan your first leaf <span>↗</span></a></div>
+</section>
+{% endblock %}
