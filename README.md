@@ -43,6 +43,14 @@ The repository includes `render.yaml` for a Python web service. In the Render Da
 
 The Blueprint selects `1c-2g` (1 CPU, 2 GB RAM) because TensorFlow and the loaded model need more memory than Render's free web plan provides. Render's listed price for that plan is currently about $40/month; confirm the current amount in Render before applying. Render's Python web service guidance is at https://render.com/docs/deploy-flask and compute plan details at https://render.com/docs/compute-plans.
 
+## Deploy on Vercel
+
+This repository is configured for Vercel's Flask Python runtime. Connect `tejash2233/cropbot` as a new Vercel project and deploy from the repository root. Vercel serves the files in `public/` from its CDN; the Flask app serves those same files locally at `/style.css` and `/app.js`.
+
+The classifier uses TensorFlow, so the Python function bundle may exceed Vercel's standard 500 MB limit. If Vercel rejects the build for bundle size, enable **Large Functions** for the project by setting `VERCEL_SUPPORT_LARGE_FUNCTIONS=1` in Project Settings → Environment Variables, then redeploy. Large Functions are a Vercel beta feature and plan/usage limits apply. The hosted scanner resizes and compresses photos in the browser before upload to stay below the function request limit.
+
+The project pins Python 3.12 for Vercel and sets a 60-second function duration. The TensorFlow model is loaded by the Flask function at startup, so allow the first request after a cold start to take longer. For frequent inference or if the project cannot enable large functions, deploy the Flask model API on a Python container host and keep the Vercel site as its frontend.
+
 ## Train or replace the classifier
 
 For field-photo training, download the ZIP from the [PlantDoc dataset repository](https://github.com/pratikkayal/PlantDoc-Dataset) and save it as `work/PlantDoc-Dataset.zip`. The included `prepare_plantdoc.py` safely extracts its train/test folders and renames image files that Windows cannot store:

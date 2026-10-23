@@ -1,0 +1,5 @@
+# Training data, local development artifacts, and caches are not part of the deployment.
+work/
+datasets/
+**/__pycache__/
+*.py[cod]

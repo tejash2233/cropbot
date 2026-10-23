@@ -6,17 +6,27 @@ import os
 from datetime import datetime, timezone
 
 import numpy as np
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, render_template, request, send_from_directory
 from PIL import Image, UnidentifiedImageError
 
 app = Flask(__name__)
-app.config['MAX_CONTENT_LENGTH'] = 12 * 1024 * 1024
+app.config['MAX_CONTENT_LENGTH'] = 4 * 1024 * 1024
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger('cropbot')
 BASE = os.path.dirname(os.path.abspath(__file__))
 MODEL = None
 CLASS_NAMES = []
 MODEL_ERROR = 'The disease model is not available.'
+
+@app.get('/style.css')
+def public_stylesheet():
+    """Serve Vercel CDN assets locally through Flask during development."""
+    return send_from_directory(os.path.join(BASE, 'public'), 'style.css')
+
+@app.get('/app.js')
+def public_script():
+    """Serve Vercel CDN assets locally through Flask during development."""
+    return send_from_directory(os.path.join(BASE, 'public'), 'app.js')
 
 # Guidance is deliberately focused on observation, sanitation, and growing
 # conditions. Confirm diagnoses locally before using crop protection products.
@@ -268,7 +278,7 @@ def scan():
 
 @app.errorhandler(413)
 def too_large(_error):
-    return jsonify(error='Photo is too large. Please choose an image under 12 MB.'), 413
+    return jsonify(error='Photo is too large. Please choose a smaller image (under 4 MB).'), 413
 
 if __name__ != '__main__':
     load_model()

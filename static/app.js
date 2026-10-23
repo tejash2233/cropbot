@@ -92,6 +92,25 @@ function setPreview(blob, label) {
   $('#analyzePhoto').disabled = false;
 }
 
+async function compressForUpload(file) {
+  const bitmap = await createImageBitmap(file);
+  const maxEdge = 1600;
+  const scale = Math.min(1, maxEdge / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+  canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+  canvas.getContext('2d').drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  bitmap.close();
+  let quality = 0.82;
+  let blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', quality));
+  while (blob && blob.size > 3.5 * 1024 * 1024 && quality > 0.5) {
+    quality -= 0.1;
+    blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', quality));
+  }
+  if (!blob || blob.size > 3.5 * 1024 * 1024) throw new Error('This image is too large to send. Choose a smaller photo.');
+  return blob;
+}
+
 async function startCamera() {
   if (!navigator.mediaDevices?.getUserMedia) {
     $('#scanMessage').textContent = 'Camera access needs HTTPS or localhost. Use Choose a photo if the camera cannot open.';
@@ -201,7 +220,8 @@ async function analyzePhoto() {
   $('#scanMessage').textContent = 'Looking for visual patterns. This may take a few moments on the first scan.';
   try {
     const form = new FormData();
-    form.append('image', scanPhoto, 'leaf.jpg');
+    const uploadImage = await compressForUpload(scanPhoto);
+    form.append('image', uploadImage, 'leaf.jpg');
     const response = await fetch('/api/scan', { method: 'POST', body: form });
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'Scan could not be completed.');
